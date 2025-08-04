@@ -261,6 +261,99 @@ class InquisitorCLI:
         
         self.cache.clear_cache()
         print(self.formatter.format_success("Cache cleared successfully"))
+    
+    def random_question_command(self):
+        """Generate and answer a random interesting question."""
+        import random
+        
+        # Categories and question templates for generating interesting questions
+        question_templates = [
+            # History & Culture
+            "What were the long-term consequences of {historical_event} on modern society?",
+            "How did {ancient_civilization} influence contemporary {field}?",
+            "What can we learn from the rise and fall of {empire} that applies to today's world?",
+            "How has the concept of {cultural_concept} evolved from ancient times to now?",
+            
+            # Science & Technology
+            "What are the latest breakthroughs in {scientific_field} and their potential impact?",
+            "How is {emerging_technology} changing the way we approach {domain}?",
+            "What ethical considerations arise from advances in {tech_field}?",
+            "How might {scientific_discovery} reshape our understanding of {concept}?",
+            
+            # Society & Philosophy
+            "How is {social_phenomenon} affecting {demographic} in the 21st century?",
+            "What role does {institution} play in addressing modern {challenge}?",
+            "How has {philosophical_concept} been reinterpreted in contemporary {context}?",
+            "What are the sociological implications of {trend} on future generations?",
+            
+            # Economics & Politics
+            "How are {economic_factor} and {political_system} interconnected in today's world?",
+            "What lessons can {country} teach us about {policy_area}?",
+            "How is {global_trend} reshaping international {domain}?",
+            "What are the unintended consequences of {policy_type} in modern societies?",
+            
+            # Environment & Future
+            "How are communities adapting to {environmental_challenge} around the world?",
+            "What innovative solutions are emerging to address {sustainability_issue}?",
+            "How might {environmental_factor} influence {aspect} in the next decade?",
+            "What can indigenous knowledge teach us about {environmental_topic}?"
+        ]
+        
+        # Replacement values for templates
+        replacements = {
+            'historical_event': ['the Industrial Revolution', 'the fall of the Berlin Wall', 'the invention of the printing press', 'the Silk Road trade routes', 'the Renaissance'],
+            'ancient_civilization': ['Ancient Rome', 'the Maya', 'Ancient Egypt', 'the Indus Valley civilization', 'Ancient Greece'],
+            'empire': ['the Ottoman Empire', 'the British Empire', 'the Mongol Empire', 'the Roman Empire', 'the Spanish Empire'],
+            'cultural_concept': ['democracy', 'justice', 'art', 'education', 'family structures'],
+            'field': ['architecture', 'governance', 'philosophy', 'medicine', 'urban planning'],
+            'scientific_field': ['quantum computing', 'CRISPR gene editing', 'artificial intelligence', 'neuroscience', 'climate science'],
+            'emerging_technology': ['artificial intelligence', 'blockchain', 'quantum computing', 'biotechnology', 'renewable energy'],
+            'tech_field': ['artificial intelligence', 'genetic engineering', 'surveillance technology', 'social media algorithms', 'automation'],
+            'scientific_discovery': ['CRISPR', 'gravitational waves', 'exoplanets', 'the human microbiome', 'quantum entanglement'],
+            'domain': ['education', 'healthcare', 'transportation', 'communication', 'entertainment'],
+            'concept': ['consciousness', 'time', 'reality', 'human behavior', 'the universe'],
+            'social_phenomenon': ['remote work', 'social media', 'urbanization', 'digital nomadism', 'the gig economy'],
+            'demographic': ['Gen Z', 'millennials', 'rural communities', 'urban populations', 'elderly populations'],
+            'institution': ['education', 'healthcare systems', 'democratic institutions', 'the family unit', 'religious organizations'],
+            'challenge': ['climate change', 'inequality', 'mental health', 'technological disruption', 'political polarization'],
+            'philosophical_concept': ['freedom', 'justice', 'truth', 'beauty', 'moral responsibility'],
+            'context': ['digital age', 'post-pandemic world', 'globalized society', 'multicultural societies', 'technological era'],
+            'trend': ['artificial intelligence', 'climate change', 'globalization', 'demographic shifts', 'technological advancement'],
+            'economic_factor': ['inflation', 'cryptocurrency', 'automation', 'globalization', 'income inequality'],
+            'political_system': ['democracy', 'authoritarianism', 'federalism', 'international cooperation', 'populism'],
+            'country': ['Denmark', 'Singapore', 'Costa Rica', 'Rwanda', 'South Korea'],
+            'policy_area': ['education', 'healthcare', 'environmental protection', 'social welfare', 'innovation'],
+            'global_trend': ['climate change', 'digitalization', 'demographic transition', 'urbanization', 'economic inequality'],
+            'policy_type': ['universal basic income', 'carbon taxes', 'digital privacy laws', 'immigration policies', 'education reform'],
+            'environmental_challenge': ['rising sea levels', 'extreme weather', 'water scarcity', 'biodiversity loss', 'air pollution'],
+            'sustainability_issue': ['plastic pollution', 'food waste', 'renewable energy', 'sustainable agriculture', 'circular economy'],
+            'environmental_factor': ['climate change', 'deforestation', 'ocean acidification', 'urban heat islands', 'biodiversity loss'],
+            'aspect': ['urban planning', 'agriculture', 'migration patterns', 'economic systems', 'social structures'],
+            'environmental_topic': ['sustainable agriculture', 'forest management', 'water conservation', 'climate adaptation', 'biodiversity preservation']
+        }
+        
+        # Generate a random question
+        template = random.choice(question_templates)
+        
+        # Replace placeholders with random values
+        question = template
+        for placeholder, values in replacements.items():
+            if '{' + placeholder + '}' in question:
+                question = question.replace('{' + placeholder + '}', random.choice(values))
+        
+        # Display the generated question
+        self.formatter.print_status("Generated random question:")
+        print(f"\n{self.formatter.format_info('Q:')} {question}\n")
+        
+        # Process the question through the normal pipeline
+        success = self.process_query(question, force_refresh=False)
+        
+        if not success:
+            self.formatter.print_error("Failed to generate answer for the random question")
+            return
+        
+        # Add a note about the random question feature
+        print(f"\n{self.formatter.format_info('💡 Tip:')} Use 'inquisitor --random' anytime for another interesting question!")
 
 
 def main():
@@ -272,6 +365,7 @@ def main():
 Examples:
   inquisitor                              # Interactive mode
   inquisitor "What is the capital of France?"  # Single query
+  inquisitor --random                     # Generate and answer a random question
   inquisitor --use-cache "Python basics"  # Use cached answer if available
   inquisitor --verbose "GDP comparison"   # Enable debug output
   inquisitor --no-color "Python 3.12 features"  # No color output
@@ -344,6 +438,12 @@ Examples:
     )
     
     parser.add_argument(
+        "--random",
+        action="store_true",
+        help="Generate and answer a random interesting question"
+    )
+    
+    parser.add_argument(
         "--version",
         action="version",
         version="Inquisitor 1.0.0"
@@ -387,6 +487,10 @@ Examples:
     
     if args.cache_clear:
         cli.clear_cache_command()
+        return
+    
+    if args.random:
+        cli.random_question_command()
         return
     
     if args.query:

@@ -168,6 +168,65 @@ inquisitor "What are the unemployment rates in European countries?"
 inquisitor "Show me the top programming languages by popularity percentage"
 ```
 
+### Example Output
+
+```
+❯ inquisitor "Compare the GDP of top 4 G7 countries"
+⏳ Searching the web...
+✓ Found 6 results
+⏳ Generating answer...
+
+==================================================
+                Inquisitor Answer                 
+==================================================
+
+When comparing the GDP of the top 4 G7 countries, we can look at the nominal GDP figures for these nations. According to the data provided, the top 4 G7 countries by nominal GDP are as follows:
+
+
+1. United States: $27,720,700,000,000 [5]
+2. China: $17,794,800,000,000 [5]
+3. Germany: $4,525,700,000,000 [5]
+4. Japan: $4,204,490,000,000 [5]
+
+
+These figures highlight the economic strength of these countries within the G7 group. The United States leads by a significant margin, followed by China, with Germany and Japan rounding out the top 4.
+
+
+It's important to note that the G7 countries collectively represent 28.4% of global GDP (PPP) as of today, a decrease from around 50% in the 1980s [2]. This indicates the evolving landscape of the global economy and the shifting contributions of different countries to the world's GDP.
+
+
+In summary, the GDP of the top 4 G7 countries ranks the United States as the largest economy, followed by China, Germany, and Japan in that order based on nominal GDP figures [5].
+
+
+
+Sources:
+
+[1] Visualizing the G7 Economies by GDP Size
+    https://www.visualcapitalist.com/visualizing-the-g7-economies-by-gdp-size/
+    This chart breaks down the G7 economy, highlighting each member state's share of PPP-adjusted GDP. Data is sourced from the International Monetary Fund (2024)
+
+[2] G7 vs. the World: GDP, Population, and Military Strength
+    https://www.visualcapitalist.com/g7-vs-the-world-gdp-population-and-military-strength/
+    G7 countries represent 28.4% of global GDP (PPP) today, down from about 50% in the 1980s · The G7 accounts for only 9.6% of the world's ...
+
+[3] GDP international comparisons: Economic indicators
+    https://commonslibrary.parliament.uk/research-briefings/sn02784/
+    GDP measures the size of the economy. Find the latest GDP growth data for the UK and comparisons with other G7 economies.
+
+[4] List of countries by GDP (nominal)
+    https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(nominal)
+    Countries are sorted by nominal GDP estimates from financial and statistical institutions, which are calculated at market or government official exchange rates.
+
+[5] GDP by Country
+    https://www.worldometers.info/gdp/gdp-by-country/
+    GDP by Country ; 1, United States, $27,720,700,000,000 ; 2, China, $17,794,800,000,000 ; 3, Germany, $4,525,700,000,000 ; 4, Japan, $4,204,490,000,000 ...
+
+[6] Infographic: Comparison of the GDP of BRICS and G7 ...
+    https://www.reddit.com/r/Popular_Science_Ru/comments/1i7z568/%D0%B8%D0%BD%D1%84%D0%BE%D0%B3%D1%80%D0%B0%D1%84%D0%B8%D0%BA%D0%B0_%D1%81%D1%80%D0%B0%D0%B2%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5_%D0%B2%D0%B2%D0%BF_%D1%81%D1%82%D1%80%D0%B0%D0%BD_%D0%B1%D1%80%D0%B8%D0%BA%D1%81_%D0%B8_%D0%B1%D0%BE%D0%BB%D1%8C%D1%88%D0%BE%D0%B9/?tl=en
+    BRICS+, which includes 10 countries, will account for approximately 29% of global GDP in 2025, while the G7 will remain dominant (45%). Among ...
+
+```
+
 ### Chart Features
 
 - **Smart detection** - Automatically identifies chart-worthy content
