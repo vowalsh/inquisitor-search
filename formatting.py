@@ -67,6 +67,12 @@ class OutputFormatter:
             return f"{Fore.GREEN}✓ {message}{Style.RESET_ALL}"
         return f"✓ {message}"
     
+    def format_info(self, message: str) -> str:
+        """Format info messages."""
+        if self.use_colors:
+            return f"{Fore.CYAN}ℹ {message}{Style.RESET_ALL}"
+        return f"ℹ {message}"
+    
     def _format_header(self, title: str) -> str:
         """Format the main header."""
         if self.use_colors:
