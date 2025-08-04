@@ -97,10 +97,10 @@ class QACache:
         serialized_results = []
         for result in search_results:
             serialized_results.append({
-                'title': result.title,
-                'url': result.url,
-                'snippet': result.snippet,
-                'source': getattr(result, 'source', 'unknown')
+                'title': str(result.title) if hasattr(result, 'title') else 'Unknown',
+                'url': str(result.url) if hasattr(result, 'url') else '',
+                'snippet': str(result.snippet) if hasattr(result, 'snippet') else '',
+                'source': str(getattr(result, 'source', 'unknown'))
             })
         
         cached_qa = CachedQA(

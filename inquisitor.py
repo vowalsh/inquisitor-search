@@ -45,23 +45,45 @@ class InquisitorCLI:
             True if successful, False otherwise
         """
         try:
-            # Step 1: Check cache (unless force refresh is requested)
-            if self.use_cache and not force_refresh:
+            # Step 1: Check cache (only if explicitly requested and not force refresh)
+            if hasattr(self, 'use_cache_retrieval') and self.use_cache_retrieval and self.use_cache and not force_refresh:
                 cached_answer = self.cache.find_exact_match(query)
                 if cached_answer:
                     self.formatter.print_success("Found exact match in cache")
                     print()  # Add spacing
-                    self.formatter.print_response(cached_answer.answer, cached_answer.search_results)
+                    
+                    # Convert cached search result dictionaries back to SearchResult objects
+                    from search import SearchResult
+                    search_results = []
+                    for result_dict in cached_answer.search_results:
+                        search_results.append(SearchResult(
+                            title=result_dict.get('title', 'Unknown'),
+                            url=result_dict.get('url', ''),
+                            snippet=result_dict.get('snippet', '')
+                        ))
+                    
+                    self.formatter.print_response(cached_answer.answer, search_results)
                     return True
                 
-                # Check for similar questions
-                similar_questions = self.cache.find_similar_questions(query, min_similarity=0.8, max_results=1)
+                # Check for similar questions with higher threshold (95% similarity)
+                similar_questions = self.cache.find_similar_questions(query, min_similarity=0.95, max_results=1)
                 if similar_questions:
                     qa, similarity = similar_questions[0]  # Get the best match
                     self.formatter.print_success(f"Found similar question in cache (similarity: {similarity:.1%})")
                     print(f"Original question: {qa.question}")
                     print()  # Add spacing
-                    self.formatter.print_response(qa.answer, qa.search_results)
+                    
+                    # Convert cached search result dictionaries back to SearchResult objects
+                    from search import SearchResult
+                    search_results = []
+                    for result_dict in qa.search_results:
+                        search_results.append(SearchResult(
+                            title=result_dict.get('title', 'Unknown'),
+                            url=result_dict.get('url', ''),
+                            snippet=result_dict.get('snippet', '')
+                        ))
+                    
+                    self.formatter.print_response(qa.answer, search_results)
                     return True
             
             # Step 2: Search
@@ -247,6 +269,7 @@ def main():
 Examples:
   inquisitor                              # Interactive mode
   inquisitor "What is the capital of France?"  # Single query
+  inquisitor --use-cache "Python basics"  # Use cached answer if available
   inquisitor --no-color "Python 3.12 features"  # No color output
   inquisitor --cache-search "python"     # Search cached Q&As
   inquisitor --cache-list                 # List recent cached entries
@@ -284,6 +307,12 @@ Examples:
         "--force-refresh",
         action="store_true",
         help="Force fresh search, skip cache"
+    )
+    
+    parser.add_argument(
+        "--use-cache",
+        action="store_true",
+        help="Use cached answers if available (exact or similar matches)"
     )
     
     parser.add_argument(
@@ -326,9 +355,11 @@ Examples:
     
     # Initialize CLI
     use_colors = not args.no_color
-    use_cache = not args.no_cache
+    enable_cache = not args.no_cache  # Cache storage is always enabled unless --no-cache
+    use_cache_retrieval = args.use_cache  # Cache retrieval only if --use-cache flag is used
     streaming = not args.no_streaming  # Default to True, disable with --no-streaming
-    cli = InquisitorCLI(use_colors=use_colors, num_results=args.results, use_cache=use_cache, streaming=streaming)
+    cli = InquisitorCLI(use_colors=use_colors, num_results=args.results, use_cache=enable_cache, streaming=streaming)
+    cli.use_cache_retrieval = use_cache_retrieval
     
     # Handle cache commands
     if args.cache_search:

@@ -24,7 +24,8 @@ setup(
         "cache", 
         "search",
         "llm",
-        "formatting"
+        "formatting",
+        "charts"
     ],
     classifiers=[
         "Development Status :: 4 - Beta",

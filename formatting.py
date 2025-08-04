@@ -6,6 +6,7 @@ Handles displaying answers with citations and source mapping.
 from typing import List
 from colorama import Fore, Style, init
 from search import SearchResult
+from charts import ChartGenerator
 
 # Initialize colorama for cross-platform color support
 init(autoreset=True)
@@ -16,6 +17,7 @@ class OutputFormatter:
     
     def __init__(self, use_colors: bool = True):
         self.use_colors = use_colors
+        self.chart_generator = ChartGenerator(use_colors=use_colors)
     
     def format_response(self, answer: str, search_results: List[SearchResult]) -> str:
         """
@@ -37,6 +39,12 @@ class OutputFormatter:
         # Add the synthesized answer
         output.append(self._format_answer(answer))
         output.append("")
+        
+        # Generate and add charts if applicable
+        chart_output = self.chart_generator.generate_charts(answer, search_results)
+        if chart_output:
+            output.append(chart_output)
+            output.append("")
         
         # Add sources section
         if search_results:

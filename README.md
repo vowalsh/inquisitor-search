@@ -11,6 +11,7 @@ Inquisitor combines live web search with LLM synthesis to deliver real-time, cit
 - **Streaming Output** - Real-time answer generation like ChatGPT and Perplexity (enabled by default)
 - **Inline Citations** - Transparent source attribution with [1], [2] references
 - **Beautiful Output** - Colored terminal display with clear formatting
+- **Visual Data Charts** - Automatic generation of terminal charts and graphs for numeric/statistical topics
 - **Fast & Lightweight** - Minimal dependencies, maximum performance
 - **Interactive Mode** - Continuous Q&A sessions
 - **Smart Caching** - Cache answers for instant retrieval and offline access
@@ -134,6 +135,47 @@ Sources:
     Detailed performance comparisons showing speed improvements...
 ```
 
+## Visual Data Charts
+
+Inquisitor automatically detects numeric and statistical content in answers and generates beautiful terminal charts and visualizations using the Rich library.
+
+### Automatic Chart Generation
+
+When your query returns data with:
+- **Percentages** (e.g., "market share: 45%")
+- **Currency values** (e.g., "revenue: $2.5 billion")
+- **Statistical data** (e.g., "population: 1,400,000")
+- **Comparative numbers** (e.g., growth rates, rankings)
+
+Inquisitor will automatically generate:
+- **Horizontal bar charts** for comparing multiple data points
+- **Summary tables** with formatted values and data types
+- **Visual panels** with color-coded information
+
+### Example Queries That Generate Charts
+
+```bash
+# Market data
+inquisitor "What are the market shares of major smartphone companies?"
+
+# Financial information
+inquisitor "Compare the GDP of G7 countries"
+
+# Statistical comparisons
+inquisitor "What are the unemployment rates in European countries?"
+
+# Performance metrics
+inquisitor "Show me the top programming languages by popularity percentage"
+```
+
+### Chart Features
+
+- **Smart detection** - Automatically identifies chart-worthy content
+- **Multiple formats** - Bar charts and comparison tables
+- **Color coding** - Different colors for different data types
+- **Responsive design** - Adapts to terminal width
+- **Clean presentation** - Integrated seamlessly with answer text
+
 ## Architecture
 
 - **`inquisitor.py`** - Main CLI interface and orchestration
@@ -141,6 +183,7 @@ Sources:
 - **`llm.py`** - LLM synthesis with OpenAI integration
 - **`formatting.py`** - Output formatting and terminal display
 - **`cache.py`** - Q&A caching and retrieval system
+- **`charts.py`** - Terminal chart and visualization generation
 
 ## Configuration
 
