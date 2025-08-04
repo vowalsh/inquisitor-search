@@ -12,11 +12,13 @@ Inquisitor combines live web search with LLM synthesis to deliver real-time, cit
 - **Inline Citations** - Transparent source attribution with [1], [2] references
 - **Beautiful Output** - Colored terminal display with clear formatting
 - **Visual Data Charts** - Automatic generation of terminal charts and graphs for numeric/statistical topics
-- **Fast & Lightweight** - Minimal dependencies, maximum performance
-- **Interactive Mode** - Continuous Q&A sessions
-- **Smart Caching** - Cache answers for instant retrieval and offline access
+- **Smart Caching** - Intelligent Q&A caching with similarity matching for instant retrieval
 - **Cache Search** - Find previous Q&As with powerful search functionality
-- **Flexible** - Single queries or interactive sessions
+- **Random Questions** - Generate and answer random interesting questions for discovery
+- **Interactive Mode** - Continuous Q&A sessions with cache commands
+- **Verbose Mode** - Debug output for troubleshooting and development
+- **Fast & Lightweight** - Minimal dependencies, maximum performance
+- **Flexible** - Single queries, interactive sessions, or batch operations
 
 ## Installation
 
@@ -76,8 +78,11 @@ inquisitor --cache-clear
 # Force fresh search (skip cache)
 inquisitor --force-refresh "What is Python?"
 
-# Disable caching
+# Disable caching for this query
 inquisitor --no-cache "Your question"
+
+# Enable cache retrieval (check for similar questions)
+inquisitor --use-cache "Your question"
 ```
 
 ### Interactive Cache Commands
@@ -89,31 +94,57 @@ In interactive mode, use these cache commands:
 ❓ Your question: /cache clear         # Clear cache
 ```
 
-### Options
+### Additional Options
 ```bash
+# Get help
 inquisitor --help
+
+# Disable colored output
 inquisitor --no-color "Python 3.12 features"
+
+# Specify number of search results (default: 8)
 inquisitor --results 5 "Climate change solutions"
+
+# Disable streaming output
 inquisitor --no-streaming "Explain machine learning"
-inquisitor --no-cache "Disable caching for this query"
+
+# Generate a random interesting question
+inquisitor --random
+
+# Enable verbose debug output
+inquisitor --verbose "Debug this query"
+
+# Show version
+inquisitor --version
 ```
 
 ## Caching System
 
-Inquisitor automatically caches Q&A pairs for:
-- **Instant retrieval** of repeated questions
-- **Offline access** to previous answers
-- **Similar question detection** with smart matching
-- **Search functionality** across cached content
+Inquisitor features an intelligent caching system that:
+- **Automatically stores** all Q&A pairs with timestamps and sources
+- **Detects similar questions** using fuzzy matching (70%+ similarity threshold)
+- **Provides instant retrieval** for exact and similar questions
+- **Enables offline access** to previous answers
+- **Supports full-text search** across cached content
 
-Cache features:
-- Stores questions, answers, and source links
-- Automatic expiration (30 days by default)
-- Size limits (1000 entries by default)
+### Cache Behavior
+- **Default**: Cache is always enabled for storage, retrieval requires `--use-cache` flag
+- **Storage**: All answers are automatically cached unless `--no-cache` is used
+- **Retrieval**: Similar questions are only suggested when `--use-cache` flag is provided
+- **Override**: Use `--force-refresh` to bypass cache and get fresh results
+
+### Cache Management
+- **Location**: `~/.inquisitor_cache/qa_cache.json`
+- **Expiration**: 30 days (configurable)
+- **Size limit**: 1000 entries (configurable)
+- **Automatic cleanup**: Removes expired and excess entries
+
+### Cache Features
+- Stores questions, answers, source links, and metadata
 - Similarity matching for related questions
 - Full-text search across Q&As
-
-Cache location: `~/.inquisitor_cache/qa_cache.json`
+- Statistics and management commands
+- JSON format for easy inspection and backup
 
 ## Example Output
 
@@ -252,10 +283,17 @@ Environment variables in `.env`:
 
 ## Requirements
 
-- Python 3.7+
-- Internet connection
-- SerpAPI account (free tier available)
-- OpenAI API account
+- **Python 3.7+** (tested up to Python 3.12)
+- **Internet connection** for web search and LLM synthesis
+- **SerpAPI account** - Free tier available at [serpapi.com](https://serpapi.com/)
+- **OpenAI API account** - Get your key at [platform.openai.com](https://platform.openai.com/api-keys)
+
+### Dependencies
+- `requests>=2.31.0` - HTTP requests
+- `openai>=1.0.0` - OpenAI API client
+- `colorama>=0.4.6` - Cross-platform colored terminal text
+- `python-dotenv>=1.0.0` - Environment variable management
+- `rich>=13.0.0` - Rich text and beautiful formatting for charts
 
 ## License
 
