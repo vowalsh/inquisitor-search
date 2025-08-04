@@ -15,9 +15,10 @@ init(autoreset=True)
 class OutputFormatter:
     """Handles formatting and displaying Inquisitor output."""
     
-    def __init__(self, use_colors: bool = True):
+    def __init__(self, use_colors: bool = True, verbose: bool = False):
         self.use_colors = use_colors
-        self.chart_generator = ChartGenerator(use_colors=use_colors)
+        self.verbose = verbose
+        self.chart_generator = ChartGenerator(use_colors=use_colors, verbose=verbose)
     
     def format_response(self, answer: str, search_results: List[SearchResult]) -> str:
         """
@@ -41,7 +42,11 @@ class OutputFormatter:
         output.append("")
         
         # Generate and add charts if applicable
+        if self.verbose:
+            print("DEBUG: Calling chart_generator.generate_charts()")
         chart_output = self.chart_generator.generate_charts(answer, search_results)
+        if self.verbose:
+            print(f"DEBUG: chart_output = {chart_output is not None}")
         if chart_output:
             output.append(chart_output)
             output.append("")

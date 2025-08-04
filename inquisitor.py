@@ -19,8 +19,8 @@ from cache import QACache, CachedQA
 class InquisitorCLI:
     """Main CLI application for Inquisitor."""
     
-    def __init__(self, use_colors: bool = True, num_results: int = 8, use_cache: bool = True, streaming: bool = True):
-        self.formatter = OutputFormatter(use_colors=use_colors)
+    def __init__(self, use_colors: bool = True, num_results: int = 8, use_cache: bool = True, streaming: bool = True, verbose: bool = False):
+        self.formatter = OutputFormatter(use_colors=use_colors, verbose=verbose)
         self.num_results = num_results
         self.use_cache = use_cache
         self.streaming = streaming
@@ -45,6 +45,9 @@ class InquisitorCLI:
             True if successful, False otherwise
         """
         try:
+            if hasattr(self, 'verbose') and self.verbose:
+                print(f"DEBUG: process_query called with verbose={self.verbose}")
+            
             # Step 1: Check cache (only if explicitly requested and not force refresh)
             if hasattr(self, 'use_cache_retrieval') and self.use_cache_retrieval and self.use_cache and not force_refresh:
                 cached_answer = self.cache.find_exact_match(query)
@@ -270,6 +273,7 @@ Examples:
   inquisitor                              # Interactive mode
   inquisitor "What is the capital of France?"  # Single query
   inquisitor --use-cache "Python basics"  # Use cached answer if available
+  inquisitor --verbose "GDP comparison"   # Enable debug output
   inquisitor --no-color "Python 3.12 features"  # No color output
   inquisitor --cache-search "python"     # Search cached Q&As
   inquisitor --cache-list                 # List recent cached entries
@@ -351,6 +355,12 @@ Examples:
         help="Disable streaming output (show complete answer at once)"
     )
     
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose debug output"
+    )
+    
     args = parser.parse_args()
     
     # Initialize CLI
@@ -358,7 +368,8 @@ Examples:
     enable_cache = not args.no_cache  # Cache storage is always enabled unless --no-cache
     use_cache_retrieval = args.use_cache  # Cache retrieval only if --use-cache flag is used
     streaming = not args.no_streaming  # Default to True, disable with --no-streaming
-    cli = InquisitorCLI(use_colors=use_colors, num_results=args.results, use_cache=enable_cache, streaming=streaming)
+    verbose = args.verbose
+    cli = InquisitorCLI(use_colors=use_colors, num_results=args.results, use_cache=enable_cache, streaming=streaming, verbose=verbose)
     cli.use_cache_retrieval = use_cache_retrieval
     
     # Handle cache commands

@@ -17,9 +17,10 @@ class ChartGenerator:
 
     """Generates terminal charts and visualizations for numeric data."""
     
-    def __init__(self, use_colors: bool = True):
+    def __init__(self, use_colors: bool = True, verbose: bool = False):
         self.console = Console(color_system="auto" if use_colors else None)
         self.use_colors = use_colors
+        self.verbose = verbose
     
     def should_generate_chart(self, answer: str, search_results: List[SearchResult]) -> bool:
         """
@@ -322,15 +323,24 @@ class ChartGenerator:
         """
         # Completely isolate chart generation to prevent any errors from affecting the main query
         try:
-            # Simple check: only generate charts if we have GDP-related content
-            answer_lower = answer.lower()
-            if not ('gdp' in answer_lower and ('trillion' in answer_lower or '$' in answer)):
+            # Check if we should generate charts
+            should_generate = self.should_generate_chart(answer, search_results)
+            if self.verbose:
+                print(f"DEBUG: should_generate_chart = {should_generate}")
+            if not should_generate:
                 return None
             
             # Extract data only from answer text to avoid cache compatibility issues
             all_data = self.extract_numeric_data(answer)
+            if self.verbose:
+                print(f"DEBUG: extracted {len(all_data) if all_data else 0} data points")
+                if all_data:
+                    for i, item in enumerate(all_data[:3]):  # Show first 3 items
+                        print(f"DEBUG: data[{i}] = {item}")
             
             if not all_data or len(all_data) < 2:
+                if self.verbose:
+                    print("DEBUG: Not enough data points for chart generation")
                 return None
             
             # Filter and validate data
