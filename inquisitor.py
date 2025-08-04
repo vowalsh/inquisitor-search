@@ -19,10 +19,11 @@ from cache import QACache, CachedQA
 class InquisitorCLI:
     """Main CLI application for Inquisitor."""
     
-    def __init__(self, use_colors: bool = True, num_results: int = 8, use_cache: bool = True):
+    def __init__(self, use_colors: bool = True, num_results: int = 8, use_cache: bool = True, streaming: bool = True):
         self.formatter = OutputFormatter(use_colors=use_colors)
         self.num_results = num_results
         self.use_cache = use_cache
+        self.streaming = streaming
         
         try:
             self.searcher = WebSearcher()
@@ -48,43 +49,24 @@ class InquisitorCLI:
             if self.use_cache and not force_refresh:
                 cached_answer = self.cache.find_exact_match(query)
                 if cached_answer:
-                    self.formatter.print_success("Found cached answer")
-                    print()
-                    
-                    # Convert cached search results back to SearchResult-like objects for display
-                    search_results = []
-                    for result_dict in cached_answer.search_results:
-                        # Create a simple object with the required attributes
-                        class CachedSearchResult:
-                            def __init__(self, data):
-                                self.title = data['title']
-                                self.url = data['url']
-                                self.snippet = data['snippet']
-                                self.source = data.get('source', 'cached')
-                        
-                        search_results.append(CachedSearchResult(result_dict))
-                    
-                    # Display cached answer
-                    self.formatter.print_response(cached_answer.answer, search_results)
-                    
-                    # Show cache info
-                    cache_time = datetime.fromisoformat(cached_answer.timestamp)
-                    cache_msg = f"📋 Cached answer from {cache_time.strftime('%Y-%m-%d %H:%M')}"
-                    print(f"\n{self.formatter.format_info(cache_msg)}")
-                    
+                    self.formatter.print_success("Found exact match in cache")
+                    print()  # Add spacing
+                    self.formatter.print_response(cached_answer.answer, cached_answer.search_results)
                     return True
                 
                 # Check for similar questions
-                similar_questions = self.cache.find_similar_questions(query, min_similarity=0.8, max_results=3)
+                similar_questions = self.cache.find_similar_questions(query, min_similarity=0.8, max_results=1)
                 if similar_questions:
-                    print(self.formatter.format_info("Found similar cached questions:"))
-                    for i, (qa, similarity) in enumerate(similar_questions, 1):
-                        print(f"  {i}. {qa.question} (similarity: {similarity:.1%})")
-                    print()
+                    qa, similarity = similar_questions[0]  # Get the best match
+                    self.formatter.print_success(f"Found similar question in cache (similarity: {similarity:.1%})")
+                    print(f"Original question: {qa.question}")
+                    print()  # Add spacing
+                    self.formatter.print_response(qa.answer, qa.search_results)
+                    return True
             
             # Step 2: Search
             self.formatter.print_status("Searching the web")
-            search_results = self.searcher.search(query, self.num_results)
+            search_results = self.searcher.search(query, num_results=self.num_results)
             
             if not search_results:
                 self.formatter.print_error("No search results found")
@@ -93,18 +75,27 @@ class InquisitorCLI:
             self.formatter.print_success(f"Found {len(search_results)} results")
             
             # Step 3: Synthesize
-            self.formatter.print_status("Synthesizing answer")
-            answer = self.synthesizer.synthesize_answer(query, search_results)
-            
-            self.formatter.print_success("Answer generated")
-            print()  # Add spacing
+            if self.streaming:
+                self.formatter.print_status("Generating answer")
+                print()  # Add spacing before streaming output
+                answer = self.synthesizer.synthesize_answer(query, search_results, streaming=True)
+                print()  # Add spacing after streaming output
+            else:
+                self.formatter.print_status("Synthesizing answer")
+                answer = self.synthesizer.synthesize_answer(query, search_results, streaming=False)
+                self.formatter.print_success("Answer generated")
+                print()  # Add spacing
+                # Display the answer
+                self.formatter.print_response(answer, search_results)
             
             # Step 4: Cache the result
             if self.use_cache:
                 self.cache.store_qa(query, answer, search_results)
             
-            # Step 5: Display
-            self.formatter.print_response(answer, search_results)
+            # Step 5: Display citations (for streaming mode, we already printed the answer)
+            if self.streaming:
+                print()  # Add spacing before citations
+                self.formatter.print_citations(search_results)
             
             return True
             
@@ -325,12 +316,19 @@ Examples:
         version="Inquisitor 1.0.0"
     )
     
+    parser.add_argument(
+        "--no-streaming",
+        action="store_true",
+        help="Disable streaming output (show complete answer at once)"
+    )
+    
     args = parser.parse_args()
     
     # Initialize CLI
     use_colors = not args.no_color
     use_cache = not args.no_cache
-    cli = InquisitorCLI(use_colors=use_colors, num_results=args.results, use_cache=use_cache)
+    streaming = not args.no_streaming  # Default to True, disable with --no-streaming
+    cli = InquisitorCLI(use_colors=use_colors, num_results=args.results, use_cache=use_cache, streaming=streaming)
     
     # Handle cache commands
     if args.cache_search:

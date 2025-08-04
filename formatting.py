@@ -114,10 +114,19 @@ class OutputFormatter:
                    f"    {result.snippet}")
     
     def print_response(self, answer: str, search_results: List[SearchResult]):
-        """Print the formatted response to terminal."""
-        formatted = self.format_response(answer, search_results)
-        print(formatted)
+        """Print the complete formatted response."""
+        print(self.format_response(answer, search_results))
     
+    def print_citations(self, search_results: List[SearchResult]):
+        """Print just the citations/sources section."""
+        if search_results:
+            print(self._format_sources_header())
+            print()
+            
+            for i, result in enumerate(search_results, 1):
+                print(self._format_source(i, result))
+                print()
+
     def print_error(self, error_message: str):
         """Print formatted error message."""
         print(self.format_error(error_message))

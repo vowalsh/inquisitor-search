@@ -4,7 +4,8 @@ Handles generating AI responses with citations from search results.
 """
 
 import os
-from typing import List, Optional
+import sys
+from typing import List, Optional, Generator
 from openai import OpenAI
 from dotenv import load_dotenv
 from search import SearchResult
@@ -22,13 +23,14 @@ class LLMSynthesizer:
         if not (api_key or os.getenv("OPENAI_API_KEY")):
             raise ValueError("OpenAI API key not found. Set OPENAI_API_KEY environment variable.")
     
-    def synthesize_answer(self, query: str, search_results: List[SearchResult]) -> str:
+    def synthesize_answer(self, query: str, search_results: List[SearchResult], streaming: bool = False) -> str:
         """
         Generate a synthesized answer from search results with inline citations.
         
         Args:
             query: Original user query
             search_results: List of SearchResult objects
+            streaming: Whether to use streaming output
             
         Returns:
             Synthesized answer with inline citations
@@ -43,20 +45,144 @@ class LLMSynthesizer:
         prompt = self._create_synthesis_prompt(query, results_text)
         
         try:
-            response = self.client.chat.completions.create(
+            if streaming:
+                return self.print_streaming_answer(query, search_results)
+            else:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": self._get_system_prompt()},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.3,
+                    max_tokens=800
+                )
+                
+                return response.choices[0].message.content.strip()
+                
+        except Exception as e:
+            raise Exception(f"LLM synthesis failed: {e}")
+    
+    def synthesize_answer_streaming(self, query: str, search_results: List[SearchResult]) -> Generator[str, None, None]:
+        """
+        Generate a synthesized answer from search results with streaming output.
+        
+        Args:
+            query: Original user query
+            search_results: List of SearchResult objects
+            
+        Yields:
+            Chunks of the synthesized answer as they are generated
+        """
+        if not search_results:
+            yield "No search results available to synthesize an answer."
+            return
+        
+        # Format search results for the prompt
+        results_text = self._format_results_for_prompt(search_results)
+        
+        # Create the synthesis prompt
+        prompt = self._create_synthesis_prompt(query, results_text)
+        
+        try:
+            stream = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": self._get_system_prompt()},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
-                max_tokens=800
+                max_tokens=800,
+                stream=True
             )
             
-            return response.choices[0].message.content.strip()
-            
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
+                    
         except Exception as e:
-            raise Exception(f"LLM synthesis failed: {e}")
+            yield f"\nError: LLM synthesis failed: {e}"
+    
+    def print_streaming_answer(self, query: str, search_results: List[SearchResult], formatter=None) -> str:
+        """
+        Print a synthesized answer with streaming output and return the complete answer.
+        
+        Args:
+            query: Original user query
+            search_results: List of SearchResult objects
+            formatter: OutputFormatter instance for styling
+            
+        Returns:
+            Complete synthesized answer
+        """
+        complete_answer = ""
+        
+        # Print the header first
+        if formatter:
+            print(formatter._format_header("Inquisitor Answer"))
+            print()
+        else:
+            print("=" * 50)
+            print("Inquisitor Answer".center(50))
+            print("=" * 50)
+            print()
+        
+        try:
+            sentence_buffer = ""
+            word_count = 0
+            
+            for chunk in self.synthesize_answer_streaming(query, search_results):
+                complete_answer += chunk
+                sentence_buffer += chunk
+                
+                # Count words for better formatting
+                if ' ' in chunk:
+                    word_count += chunk.count(' ')
+                
+                # Apply formatting to each chunk if formatter is available
+                if formatter:
+                    # Apply citation highlighting to the chunk
+                    import re
+                    if formatter.use_colors:
+                        from colorama import Fore, Style
+                        citation_pattern = r'\[(\d+)\]'
+                        formatted_chunk = re.sub(
+                            citation_pattern, 
+                            f'{Fore.BLUE}[\\1]{Style.RESET_ALL}', 
+                            chunk
+                        )
+                        print(formatted_chunk, end='', flush=True)
+                    else:
+                        print(chunk, end='', flush=True)
+                else:
+                    print(chunk, end='', flush=True)
+                
+                # Add intelligent paragraph breaks for better readability
+                if '\n\n' in sentence_buffer:
+                    # Natural paragraph break detected
+                    sentence_buffer = ""
+                    word_count = 0
+                    print()  # Add extra spacing for paragraph breaks
+                elif '. ' in chunk and word_count > 20:
+                    # Add subtle spacing after sentences in long paragraphs
+                    if sentence_buffer.count('. ') >= 1 and len(sentence_buffer) > 150:
+                        # Reset counters but don't add line break yet
+                        pass
+                elif '\n' in chunk and word_count > 15:
+                    # Natural line break with sufficient content
+                    word_count = 0
+                
+            print()  # Add newline at the end
+            print()  # Extra spacing before sources
+            return complete_answer.strip()
+            
+        except KeyboardInterrupt:
+            print("\n\nStreaming interrupted by user.")
+            return complete_answer.strip()
+        except Exception as e:
+            error_msg = f"\nError during streaming: {e}"
+            print(error_msg)
+            return complete_answer + error_msg
     
     def _get_system_prompt(self) -> str:
         """Get the system prompt for the LLM."""

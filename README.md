@@ -8,6 +8,7 @@ Inquisitor combines live web search with LLM synthesis to deliver real-time, cit
 
 - **Live Web Search** - Real-time results using SerpAPI
 - **LLM Synthesis** - AI-powered answer generation with OpenAI
+- **Streaming Output** - Real-time answer generation like ChatGPT and Perplexity (enabled by default)
 - **Inline Citations** - Transparent source attribution with [1], [2] references
 - **Beautiful Output** - Colored terminal display with clear formatting
 - **Fast & Lightweight** - Minimal dependencies, maximum performance
@@ -92,6 +93,7 @@ In interactive mode, use these cache commands:
 inquisitor --help
 inquisitor --no-color "Python 3.12 features"
 inquisitor --results 5 "Climate change solutions"
+inquisitor --no-streaming "Explain machine learning"
 inquisitor --no-cache "Disable caching for this query"
 ```
 
